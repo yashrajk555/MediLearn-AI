@@ -21,9 +21,9 @@ app.secret_key = os.environ.get(
     "MEDILEARN_SECRET_KEY",
     "medilearn-local-development-key"
 )
-# =========================================================
+
 # SYMPTOM DATABASE
-# =========================================================
+
 SYMPTOMS = {
     "Headache": {
         "questions": [
@@ -501,9 +501,9 @@ SYMPTOMS = {
 }
 
 
-# =========================================================
+
 # WARNING SIGNS
-# =========================================================
+
 
 EMERGENCY_ANSWERS = {
     "Sudden and extremely severe",
@@ -528,9 +528,9 @@ def has_warning_signs(answers):
     return False
 
 
-# =========================================================
+
 # HOME PAGE
-# =========================================================
+
 
 @app.route("/", endpoint="home")
 @app.route("/index", endpoint="index")
@@ -542,9 +542,9 @@ def home():
     )
 
 
-# =========================================================
+
 # START QUIZ
-# =========================================================
+
 
 @app.route("/start_assessment", methods=["GET", "POST"])
 def start_assessment():
@@ -580,9 +580,9 @@ def start_assessment():
     return redirect(url_for("home") + "#quiz")
 
 
-# =========================================================
+
 # FOLLOW-UP QUESTIONS
-# =========================================================
+
 
 @app.route("/questions", methods=["GET", "POST"])
 def questions():
@@ -644,9 +644,9 @@ def questions():
     )
 
 
-# =========================================================
+
 # RESULTS
-# =========================================================
+
 
 @app.route("/result")
 def result():
@@ -686,9 +686,9 @@ def result():
     )
 
 
-# =========================================================
+
 # RESTART QUIZ
-# =========================================================
+
 
 @app.route("/restart")
 def restart():
@@ -700,9 +700,9 @@ def restart():
     return redirect(url_for("home"))
 
 
-# =========================================================
+
 # RUN APPLICATIONs
-# =========================================================
+
 
 if __name__ == "__main__":
     app.run(debug=True)
