@@ -1,0 +1,1279 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>MediLearn AI | Your Health Companion</title>
+
+    <link rel="stylesheet"
+          href="{{ url_for('static', filename='style.css') }}">
+
+    <style>
+        /* Additional styles for the working quiz interface */
+
+        :root {
+            --primary: #087f8c;
+            --primary-dark: #075e68;
+            --primary-light: #e7f7f7;
+            --background: #f5fafb;
+            --text: #193b45;
+            --muted: #6c838a;
+            --border: #dce9eb;
+            --white: #ffffff;
+            --danger: #b42318;
+            --danger-bg: #fff0ee;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            margin: 0;
+            background: var(--background);
+            color: var(--text);
+            font-family: Arial, Helvetica, sans-serif;
+            line-height: 1.6;
+        }
+
+        a {
+            color: inherit;
+            text-decoration: none;
+        }
+
+        button,
+        input {
+            font: inherit;
+        }
+
+        .site-header {
+            background: rgba(255, 255, 255, 0.97);
+            border-bottom: 1px solid var(--border);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .nav-container {
+            max-width: 1200px;
+            margin: auto;
+            padding: 16px 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .brand {
+            font-size: 23px;
+            font-weight: 800;
+            color: var(--primary-dark);
+        }
+
+        .brand span {
+            color: var(--primary);
+        }
+
+        .nav-links {
+            display: flex;
+            align-items: center;
+            gap: 26px;
+            flex-wrap: wrap;
+        }
+
+        .nav-links a {
+            color: var(--muted);
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .nav-links a:hover {
+            color: var(--primary);
+        }
+
+        .nav-cta {
+            background: var(--primary);
+            color: white !important;
+            padding: 10px 18px;
+            border-radius: 10px;
+        }
+
+        .page-container {
+            width: min(1200px, 92%);
+            margin: auto;
+        }
+
+        .hero {
+            padding: 65px 0 55px;
+            background:
+                radial-gradient(circle at 8% 20%, #d9f5f1 0, transparent 30%),
+                linear-gradient(135deg, #f7fcfd, #edf8f8);
+        }
+
+        .hero-grid {
+            display: grid;
+            grid-template-columns: 1fr 0.92fr;
+            gap: 50px;
+            align-items: center;
+        }
+
+        .eyebrow {
+            display: inline-block;
+            color: var(--primary-dark);
+            background: #dff5f1;
+            padding: 8px 14px;
+            border-radius: 30px;
+            font-size: 12px;
+            font-weight: 800;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+
+        .hero h1 {
+            margin: 22px 0;
+            font-size: clamp(36px, 5vw, 59px);
+            line-height: 1.12;
+            letter-spacing: -1.5px;
+        }
+
+        .hero h1 span {
+            color: var(--primary);
+        }
+
+        .hero-description {
+            max-width: 540px;
+            color: var(--muted);
+            font-size: 17px;
+            margin-bottom: 25px;
+        }
+
+        .hero-buttons {
+            display: flex;
+            gap: 13px;
+            flex-wrap: wrap;
+            margin: 25px 0;
+        }
+
+        .button {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border: none;
+            border-radius: 11px;
+            padding: 13px 20px;
+            background: var(--primary);
+            color: white;
+            cursor: pointer;
+            font-weight: 700;
+            transition: 0.2s ease;
+        }
+
+        .button:hover {
+            background: var(--primary-dark);
+            transform: translateY(-2px);
+        }
+
+        .button-secondary {
+            background: white;
+            color: var(--primary-dark);
+            border: 1px solid var(--border);
+        }
+
+        .button-secondary:hover {
+            background: var(--primary-light);
+            color: var(--primary-dark);
+        }
+
+        .hero-points {
+            display: flex;
+            gap: 18px;
+            flex-wrap: wrap;
+            color: var(--muted);
+            font-size: 13px;
+            margin-top: 25px;
+        }
+
+        .hero-points span::before {
+            content: "✓";
+            color: var(--primary);
+            font-weight: 900;
+            margin-right: 7px;
+        }
+
+        .quiz-card {
+            background: white;
+            padding: 28px;
+            border-radius: 22px;
+            border: 1px solid var(--border);
+            box-shadow: 0 20px 60px rgba(22, 75, 85, 0.12);
+        }
+
+        .quiz-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .quiz-card h2 {
+            margin: 0 0 5px;
+            font-size: 23px;
+        }
+
+        .quiz-card p {
+            color: var(--muted);
+            margin: 0;
+            font-size: 14px;
+        }
+
+        .quiz-badge {
+            background: var(--primary-light);
+            color: var(--primary-dark);
+            padding: 7px 10px;
+            border-radius: 9px;
+            font-size: 12px;
+            font-weight: 800;
+            white-space: nowrap;
+        }
+
+        .field-label {
+            display: block;
+            font-weight: 700;
+            font-size: 14px;
+            margin: 22px 0 11px;
+        }
+
+        .symptom-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 10px;
+        }
+
+        .symptom-option {
+            position: relative;
+            display: block;
+            cursor: pointer;
+        }
+
+        .symptom-option input {
+            position: absolute;
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .symptom-option span {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            min-height: 48px;
+            padding: 12px;
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            color: var(--text);
+            font-size: 13px;
+            font-weight: 600;
+            transition: 0.2s;
+        }
+
+        .symptom-option span::before {
+            content: "+";
+            display: inline-flex;
+            justify-content: center;
+            align-items: center;
+            flex-shrink: 0;
+            width: 23px;
+            height: 23px;
+            background: #eff7f8;
+            color: var(--primary);
+            border-radius: 7px;
+            font-size: 17px;
+        }
+
+        .symptom-option input:checked + span {
+            border-color: var(--primary);
+            background: var(--primary-light);
+            color: var(--primary-dark);
+        }
+
+        .symptom-option input:checked + span::before {
+            content: "✓";
+            background: var(--primary);
+            color: white;
+            font-size: 13px;
+        }
+
+        .symptom-option input:focus-visible + span {
+            outline: 3px solid #9de3e4;
+        }
+
+        .form-error {
+            display: none;
+            color: var(--danger);
+            background: var(--danger-bg);
+            border-radius: 9px;
+            padding: 10px 12px;
+            font-size: 13px;
+            margin-top: 14px;
+        }
+
+        .quiz-submit {
+            width: 100%;
+            margin-top: 22px;
+            padding: 15px;
+        }
+
+        .privacy-note {
+            font-size: 11px !important;
+            text-align: center;
+            margin-top: 13px !important;
+        }
+
+        .flash-message {
+            padding: 12px 16px;
+            margin: 15px auto;
+            border-radius: 9px;
+            background: #fff1e6;
+            color: #8a3900;
+        }
+
+        .section {
+            padding: 65px 0;
+        }
+
+        .section-heading {
+            text-align: center;
+            max-width: 650px;
+            margin: 0 auto 35px;
+        }
+
+        .section-heading h2 {
+            font-size: 32px;
+            margin: 12px 0;
+        }
+
+        .section-heading p {
+            color: var(--muted);
+        }
+
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 22px;
+        }
+
+        .feature-card {
+            background: white;
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 25px;
+            transition: 0.2s;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 30px rgba(22, 75, 85, 0.08);
+        }
+
+        .feature-icon {
+            width: 48px;
+            height: 48px;
+            display: grid;
+            place-items: center;
+            border-radius: 13px;
+            background: var(--primary-light);
+            font-size: 23px;
+        }
+
+        .feature-card h3 {
+            margin: 17px 0 8px;
+        }
+
+        .feature-card p {
+            color: var(--muted);
+            font-size: 14px;
+        }
+
+        .steps-grid {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 25px;
+        }
+
+        .step-card {
+            padding: 24px;
+            background: white;
+            border-radius: 15px;
+            border: 1px solid var(--border);
+        }
+
+        .step-number {
+            font-size: 30px;
+            font-weight: 900;
+            color: #a2dedd;
+        }
+
+        .step-card p {
+            color: var(--muted);
+            font-size: 14px;
+        }
+
+        .disclaimer {
+            margin: 35px auto;
+            padding: 18px;
+            border: 1px solid #f0d5a4;
+            background: #fff9ed;
+            border-radius: 12px;
+            color: #74521a;
+            font-size: 13px;
+        }
+
+        .site-footer {
+            background: #123e48;
+            color: white;
+            padding: 28px 0;
+        }
+
+        .footer-inner {
+            display: flex;
+            justify-content: space-between;
+            gap: 15px;
+            flex-wrap: wrap;
+            font-size: 13px;
+        }
+
+        /* Follow-up questions */
+
+        .assessment-section {
+            padding: 55px 0 75px;
+            min-height: 70vh;
+        }
+
+        .assessment-card {
+            max-width: 760px;
+            margin: 0 auto;
+            padding: 32px;
+            background: white;
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            box-shadow: 0 12px 40px rgba(22, 75, 85, 0.08);
+        }
+
+        .assessment-card h1 {
+            margin: 10px 0;
+        }
+
+        .assessment-intro {
+            color: var(--muted);
+        }
+
+        .progress-track {
+            height: 8px;
+            background: #e8f0f1;
+            border-radius: 10px;
+            overflow: hidden;
+            margin: 20px 0 25px;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: var(--primary);
+            border-radius: 10px;
+            transition: width 0.2s;
+        }
+
+        .question-block {
+            padding: 18px 0;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .question-block h3 {
+            font-size: 16px;
+            margin: 0 0 13px;
+        }
+
+        .answer-option {
+            display: flex;
+            align-items: center;
+            gap: 11px;
+            padding: 12px;
+            margin: 8px 0;
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            cursor: pointer;
+        }
+
+        .answer-option:hover {
+            background: #f3fbfb;
+            border-color: #8dcacc;
+        }
+
+        .answer-option input {
+            accent-color: var(--primary);
+            width: 17px;
+            height: 17px;
+        }
+
+        .assessment-actions {
+            display: flex;
+            justify-content: space-between;
+            gap: 12px;
+            margin-top: 25px;
+            flex-wrap: wrap;
+        }
+
+        /* Results */
+
+        .results-header {
+            text-align: center;
+            padding: 40px 0 25px;
+        }
+
+        .results-header h1 {
+            font-size: 36px;
+        }
+
+        .results-list {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 24px;
+        }
+
+        .result-card {
+            background: white;
+            border: 1px solid var(--border);
+            border-radius: 18px;
+            padding: 26px;
+            box-shadow: 0 8px 25px rgba(22, 75, 85, 0.05);
+        }
+
+        .result-card h2 {
+            color: var(--primary-dark);
+            margin-top: 0;
+        }
+
+        .result-card h3 {
+            margin-top: 22px;
+            font-size: 16px;
+        }
+
+        .result-card li {
+            margin: 8px 0;
+        }
+
+        .answer-summary {
+            background: #f5fafb;
+            border-radius: 12px;
+            padding: 15px;
+            margin: 16px 0;
+        }
+
+        .answer-summary p {
+            margin: 7px 0;
+            font-size: 14px;
+        }
+
+        .warning-card {
+            background: var(--danger-bg);
+            color: #7f1d1d;
+            border: 1px solid #f3b6b0;
+            border-radius: 14px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+
+        .warning-card h2 {
+            margin-top: 0;
+        }
+
+        .medicine-note {
+            padding: 14px;
+            background: #84c9c5;
+            border-radius: 10px;
+            border: 1px solid #a5dee4;
+            font-size: 16px;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        @media (max-width: 850px) {
+            .hero-grid {
+                grid-template-columns: 1fr;
+                gap: 30px;
+            }
+
+            .hero {
+                padding-top: 40px;
+            }
+
+            .feature-grid,
+            .steps-grid {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+
+        @media (max-width: 600px) {
+            .nav-container {
+                padding: 13px 16px;
+                align-items: flex-start;
+            }
+
+            .nav-links {
+                gap: 10px;
+                justify-content: flex-end;
+            }
+
+            .nav-links a {
+                font-size: 12px;
+            }
+
+            .nav-links a:not(.nav-cta) {
+                display: none;
+            }
+
+            .brand {
+                font-size: 20px;
+            }
+
+            .page-container {
+                width: 92%;
+            }
+
+            .hero h1 {
+                font-size: 38px;
+            }
+
+            .quiz-card,
+            .assessment-card,
+            .result-card {
+                padding: 20px;
+            }
+
+            .symptom-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .feature-grid,
+            .steps-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .section {
+                padding: 45px 0;
+            }
+
+            .section-heading h2 {
+                font-size: 27px;
+            }
+
+            .assessment-actions .button {
+                width: 100%;
+            }
+
+            .results-header h1 {
+                font-size: 29px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<header class="site-header">
+    <div class="nav-container">
+
+        <a href="{{ url_for('home') }}" class="brand">
+            MediLearn<span> AI</span>
+        </a>
+
+        <nav class="nav-links">
+            <a href="{{ url_for('home') }}">Home</a>
+            <a href="{{ url_for('home') }}#how-it-works">How It Works</a>
+            <a href="{{ url_for('home') }}#about">About</a>
+            <a href="{{ url_for('home') }}#quiz" class="nav-cta">
+                Start Check →
+            </a>
+        </nav>
+
+    </div>
+</header>
+
+
+{% with messages = get_flashed_messages() %}
+    {% if messages %}
+        <div class="page-container">
+            {% for message in messages %}
+                <div class="flash-message">{{ message }}</div>
+            {% endfor %}
+        </div>
+    {% endif %}
+{% endwith %}
+
+
+<!-- =====================================================
+     HOME PAGE
+===================================================== -->
+
+{% if page == "home" %}
+
+<section class="hero">
+    <div class="page-container hero-grid">
+
+        <div class="hero-content">
+
+            <span class="eyebrow">
+                Your Everyday Health Companion
+            </span>
+
+            <h1>
+                Understand your symptoms.<br>
+                <span>Take the next step.</span>
+            </h1>
+
+            <p class="hero-description">
+                MediLearn AI helps you explore your symptoms through
+                a simple questionnaire and provides general health
+                information, self-care suggestions, and safety guidance.
+            </p>
+
+            <div class="hero-buttons">
+                <a href="#quiz" class="button">
+                    Start Symptom Check →
+                </a>
+
+                <a href="#how-it-works" class="button button-secondary">
+                    How It Works
+                </a>
+            </div>
+
+            <div class="hero-points">
+                <span>Simple questionnaire</span>
+                <span>Educational guidance</span>
+                <span>Safety information</span>
+            </div>
+
+        </div>
+
+
+        <!-- RIGHT-SIDE QUIZ -->
+
+        <div class="quiz-card" id="quiz">
+
+            <div class="quiz-card-header">
+                <div>
+                    <h2>Let's check your symptoms</h2>
+                    <p>Choose all that apply to you.</p>
+                </div>
+
+                <span class="quiz-badge">STEP 01</span>
+            </div>
+
+            <form
+                id="quizForm"
+                action="{{ url_for('start_assessment') }}"
+                method="POST"
+            >
+
+                <label class="field-label">
+                    What are you experiencing?
+                </label>
+
+                <div class="symptom-grid">
+
+                    {% for symptom in symptoms %}
+
+                    <label class="symptom-option">
+                        <input
+                            type="checkbox"
+                            name="symptoms"
+                            value="{{ symptom }}"
+                        >
+
+                        <span>{{ symptom }}</span>
+                    </label>
+
+                    {% endfor %}
+
+                </div>
+
+                <div id="quizError" class="form-error" role="alert">
+                    Please select at least one symptom to continue.
+                </div>
+
+                <button type="submit" class="button quiz-submit">
+                    Continue Assessment →
+                </button>
+
+                <p class="privacy-note">
+                    Educational information only. This is not a diagnosis.
+                </p>
+
+            </form>
+
+        </div>
+
+    </div>
+</section>
+
+
+<!-- FEATURES -->
+
+<section class="section" id="about">
+    <div class="page-container">
+
+        <div class="section-heading">
+            <span class="eyebrow">Your Health, Made Simpler</span>
+
+            <h2>Health information in a clearer way</h2>
+
+            <p>
+                Explore general health information and learn about
+                sensible next steps for common symptoms.
+            </p>
+        </div>
+
+        <div class="feature-grid">
+
+            <article class="feature-card">
+                <div class="feature-icon">🩺</div>
+
+                <h3>Symptom Guidance</h3>
+
+                <p>
+                    Answer simple questions about your symptoms and
+                    review a summary of your responses.
+                </p>
+            </article>
+
+            <article class="feature-card">
+                <div class="feature-icon">🌿</div>
+
+                <h3>Everyday Self-Care</h3>
+
+                <p>
+                    Explore general comfort measures and everyday
+                    self-care information for common symptoms.
+                </p>
+            </article>
+
+            <article class="feature-card">
+                <div class="feature-icon">🛡️</div>
+
+                <h3>Health Awareness</h3>
+
+                <p>
+                    Learn when symptoms may require professional
+                    medical assessment instead of home care.
+                </p>
+            </article>
+
+        </div>
+
+    </div>
+</section>
+
+
+<!-- HOW IT WORKS -->
+
+<section class="section" id="how-it-works">
+    <div class="page-container">
+
+        <div class="section-heading">
+            <span class="eyebrow">Three Simple Steps</span>
+
+            <h2>How MediLearn AI works</h2>
+
+            <p>
+                A straightforward way to explore health information.
+            </p>
+        </div>
+
+        <div class="steps-grid">
+
+            <article class="step-card">
+                <div class="step-number">01</div>
+
+                <h3>Select your symptoms</h3>
+
+                <p>
+                    Choose one or more symptoms from the questionnaire.
+                </p>
+            </article>
+
+            <article class="step-card">
+                <div class="step-number">02</div>
+
+                <h3>Answer follow-up questions</h3>
+
+                <p>
+                    Provide information about the symptoms you selected.
+                </p>
+            </article>
+
+            <article class="step-card">
+                <div class="step-number">03</div>
+
+                <h3>Review your information</h3>
+
+                <p>
+                    Read your answer summary, general self-care suggestions,
+                    and safety information.
+                </p>
+            </article>
+
+        </div>
+
+    </div>
+</section>
+
+
+<div class="page-container">
+    <div class="disclaimer">
+        <strong>Medical disclaimer:</strong>
+        MediLearn AI is an educational project, not a medical diagnostic
+        tool. It cannot determine whether you have a medical condition.
+        Seek advice from a qualified healthcare professional for medical
+        concerns. For a medical emergency, contact your local emergency
+        service immediately.
+    </div>
+</div>
+
+
+<!-- =====================================================
+     FOLLOW-UP QUESTIONS PAGE
+===================================================== -->
+
+{% elif page == "questions" %}
+
+<section class="assessment-section">
+    <div class="page-container">
+
+        <div class="assessment-card">
+
+            <span class="eyebrow">Symptom Questionnaire</span>
+
+            <h1>{{ symptom }} assessment</h1>
+
+            <p class="assessment-intro">
+                Answer each question as accurately as you can.
+                Your answers will be summarized at the end.
+            </p>
+
+            <div>
+                <strong>
+                    Symptom {{ current_number }} of {{ total_symptoms }}
+                </strong>
+
+                <div class="progress-track">
+                    <div
+                        class="progress-fill"style="width: {{ (current_number / total_symptoms * 100)|round|int }}%;"
+                    ></div>
+                </div>
+            </div>
+
+            <form
+                id="assessmentForm"
+                action="{{ url_for('questions') }}"
+                method="POST"
+            >
+
+                {% for question in questions %}
+
+                {% set question_index = loop.index0 %}
+
+                <div class="question-block">
+
+                    <h3>
+                        {{ loop.index }}. {{ question.question }}
+                    </h3>
+
+                    {% for option in question.options %}
+
+                    <label class="answer-option">
+
+                        <input
+                            type="radio"
+                            name="question_{{ question_index }}"
+                            value="{{ option }}"
+                            required
+                        >
+
+                        <span>{{ option }}</span>
+
+                    </label>
+
+                    {% endfor %}
+
+                </div>
+
+                {% endfor %}
+
+                <div class="assessment-actions">
+
+                    <a
+                        href="{{ url_for('restart') }}"
+                        class="button button-secondary"
+                    >
+                        Cancel Assessment
+                    </a>
+
+                    <button type="submit" class="button">
+                        {% if current_number == total_symptoms %}
+                            View Results →
+                        {% else %}
+                            Save & Continue →
+                        {% endif %}
+                    </button>
+
+                </div>
+
+            </form>
+
+        </div>
+
+    </div>
+</section>
+
+
+<!-- =====================================================
+     RESULTS PAGE
+===================================================== -->
+
+{% elif page == "result" %}
+
+<section class="assessment-section">
+    <div class="page-container">
+
+        <div class="results-header">
+
+            <span class="eyebrow">Assessment Complete</span>
+
+            <h1>Your Health Information Summary</h1>
+
+            <p>
+                Review your answers and the general information below.
+                This is not a diagnosis.
+            </p>
+
+        </div>
+
+
+        {% if emergency_warning %}
+
+        <div class="warning-card">
+
+            <h2>⚠️ Important: Please review this warning</h2>
+
+            <p>
+                One or more of your answers may indicate a symptom that
+                needs urgent professional assessment. This questionnaire
+                cannot determine the seriousness of your condition.
+            </p>
+
+            <p>
+                If you have severe breathing difficulty, sudden extreme
+                pain, or another potentially life-threatening symptom,
+                contact your local emergency service immediately.
+            </p>
+
+            <p>
+                Do not delay medical care while using this website.
+            </p>
+
+        </div>
+
+        {% endif %}
+
+
+        <div class="results-list">
+
+            {% for item in results %}
+
+            <article class="result-card">
+
+                <h2>🩺 {{ item.symptom }}</h2>
+
+                <p>
+                    Here is a summary of your responses and general
+                    educational information related to your selected symptom.
+                </p>
+
+
+                <div class="answer-summary">
+
+                    <h3>Your Answers</h3>
+
+                    {% if item.answers %}
+
+                        {% for question, answer in item.answers.items() %}
+
+                        <p>
+                            <strong>{{ question }}</strong><br>
+                            {{ answer }}
+                        </p>
+
+                        {% endfor %}
+
+                    {% else %}
+
+                        <p>No answers were recorded for this symptom.</p>
+
+                    {% endif %}
+
+                </div>
+
+
+                <h3>General Self-Care Information</h3>
+
+                <ul>
+                    {% for care_item in item.care %}
+                    <li>{{ care_item }}</li>
+                    {% endfor %}
+                </ul>
+
+
+                <h3>Comfort Measures You Can Consider</h3>
+
+                <ul>
+                    {% for remedy in item.remedies %}
+                    <li>{{ remedy }}</li>
+                    {% endfor %}
+                </ul>
+
+
+                <h3>MEDICINE TO TAKE</h3>
+
+                <div class="medicine-note">
+                    {{ item.medicine }}
+                </div>
+
+            </article>
+
+            {% endfor %}
+
+        </div>
+
+
+        <div class="disclaimer">
+            <strong>Remember:</strong>
+            These suggestions are general educational information.
+            They do not identify the cause of your symptoms, replace
+            professional medical advice, or guarantee that home care
+            is appropriate for you. Seek medical advice if symptoms
+            persist, worsen, or concern you.
+        </div>
+
+
+        <div class="hero-buttons" style="justify-content: center;">
+
+            <a href="{{ url_for('restart') }}" class="button">
+                Start New Assessment ↻
+            </a>
+
+            <a
+                href="{{ url_for('home') }}"
+                class="button button-secondary"
+            >
+                Return Home
+            </a>
+
+        </div>
+
+    </div>
+</section>
+
+
+{% endif %}
+
+
+<!-- FOOTER -->
+
+<footer class="site-footer">
+    <div class="page-container footer-inner">
+
+        <div>
+            <strong>MediLearn AI</strong>
+            <br>
+            Learn about your health. Make informed decisions.
+        </div>
+
+        <div>
+            Educational project · Not a diagnostic service
+        </div>
+
+    </div>
+</footer>
+
+
+<script>
+    // Validate that at least one symptom is selected.
+
+    const quizForm = document.getElementById("quizForm");
+
+    if (quizForm) {
+        quizForm.addEventListener("submit", function (event) {
+
+            const selectedSymptoms = quizForm.querySelectorAll(
+                'input[name="symptoms"]:checked'
+            );
+
+            const errorBox = document.getElementById("quizError");
+
+            if (selectedSymptoms.length === 0) {
+                event.preventDefault();
+
+                errorBox.style.display = "block";
+
+                errorBox.scrollIntoView({
+                    behavior: "smooth",
+                    block: "center"
+                });
+
+            } else {
+                errorBox.style.display = "none";
+            }
+        });
+    }
+
+
+    // Prevent accidental empty submissions on the question page.
+
+    const assessmentForm = document.getElementById("assessmentForm");
+
+    if (assessmentForm) {
+        assessmentForm.addEventListener("submit", function (event) {
+
+            const questionBlocks = assessmentForm.querySelectorAll(
+                ".question-block"
+            );
+
+            for (const block of questionBlocks) {
+
+                const selected = block.querySelector(
+                    'input[type="radio"]:checked'
+                );
+
+                if (!selected) {
+                    event.preventDefault();
+
+                    block.scrollIntoView({
+                        behavior: "smooth",
+                        block: "center"
+                    });
+
+                    return;
+                }
+            }
+        });
+    }
+</script>
+
+</body>
+</html>
